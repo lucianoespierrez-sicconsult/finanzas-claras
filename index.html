@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanzasClaras - Control y Gestión de Finanzas Personales</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        },
+                        brand: {
+                            blue: '#2563eb',
+                            lightBlue: '#38bdf8',
+                            accent: '#0ea5e9',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans bg-slate-950 text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900 border-r border-slate-800/80 flex flex-col justify-between shrink-0 hidden md:flex">
+            <div>
+                <!-- App Logo/Header -->
+                <div class="p-6 border-b border-slate-800/80 flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-sky-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-white leading-tight">FinanzasClaras</h1>
+                        <p class="text-xs text-slate-400">Gestión Personal Privada</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-4 space-y-1">
+                    <button onclick="switchTab('resumen')" id="nav-resumen" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 bg-blue-600 text-white shadow-md shadow-blue-600/20">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        <span>1. Resumen</span>
+                    </button>
+                    <button onclick="switchTab('presupuesto')" id="nav-presupuesto" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                        <i class="fa-solid fa-calculator w-5 text-center"></i>
+                        <span>2. Presupuesto</span>
+                    </button>
+                    <button onclick="switchTab('movimientos')" id="nav-movimientos" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                        <i class="fa-solid fa-receipt w-5 text-center"></i>
+                        <span>3. Movimientos</span>
+                    </button>
+                    <button onclick="switchTab('gastos-futuros')" id="nav-gastos-futuros" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                        <i class="fa-solid fa-calendar-check w-5 text-center"></i>
+                        <span>4. Gastos Futuros</span>
+                    </button>
+                    <button onclick="switchTab('tarjetas')" id="nav-tarjetas" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 text-slate-400 hover:bg-slate-800/60 hover:text-slate-200">
+                        <i class="fa-solid fa-credit-card w-5 text-center"></i>
+                        <span>5. Tarjetas y Cuotas</span>
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="flex-1 flex flex-col overflow-hidden bg-slate-950">
+
+            <header class="h-auto md:h-16 py-3 md:py-0 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur px-3 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 z-10 shrink-0">
+                <div class="flex items-center space-x-3 md:hidden w-full sm:w-auto justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <span class="font-bold text-slate-100 text-sm">FinanzasClaras</span>
+                    </div>
+                </div>
+
+                <!-- Active Period Selector -->
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-center sm:justify-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:inline"><i class="fa-regular fa-calendar-days text-blue-400 mr-1.5"></i>Período:</span>
+                    <select id="monthSelector" onchange="changePeriod()" class="bg-slate-800/90 border border-slate-700 text-slate-100 font-semibold text-xs rounded-xl px-2.5 sm:px-3.5 py-2 focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer hover:bg-slate-800 transition">
+                        <!-- Options generated dynamically -->
+                    </select>
+                    <button onclick="openAddPeriodModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold px-2.5 sm:px-3 py-2 rounded-xl transition flex items-center space-x-1.5 shrink-0" title="Agregar o cambiar mes / año">
+                        <i class="fa-solid fa-plus text-blue-400"></i>
+                        <span class="inline">Nuevo Mes</span>
+                    </button>
+                </div>
+
+                <!-- Action Button -->
+                <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
+                    <button onclick="openModal('movimiento')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs md:text-sm font-semibold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-lg shadow-blue-600/25 w-full sm:w-auto justify-center">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Nuevo Registro</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Mobile Navigation Bar -->
+            <div class="flex md:hidden bg-slate-900 border-b border-slate-800 overflow-x-auto p-2 space-x-2 scrollbar-none shrink-0">
+                <button onclick="switchTab('resumen')" id="m-nav-resumen" class="m-nav-btn shrink-0 text-xs px-3.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium">Resumen</button>
+                <button onclick="switchTab('presupuesto')" id="m-nav-presupuesto" class="m-nav-btn shrink-0 text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-medium">Presupuesto</button>
+                <button onclick="switchTab('movimientos')" id="m-nav-movimientos" class="m-nav-btn shrink-0 text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-medium">Movimientos</button>
+                <button onclick="switchTab('gastos-futuros')" id="m-nav-gastos-futuros" class="m-nav-btn shrink-0 text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-medium">Gastos Futuros</button>
+                <button onclick="switchTab('tarjetas')" id="m-nav-tarjetas" class="m-nav-btn shrink-0 text-xs px-3.5 py-1.5 rounded-lg bg-slate-800 text-slate-300 font-medium">Tarjetas</button>
+            </div>
+
+            <main class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+
+                <!-- TAB 1: RESUMEN -->
+                <section id="tab-resumen" class="tab-content space-y-6">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">Resumen Mensual</h2>
+                        <p class="text-sm text-slate-400">Estado consolidado filtrado para el período seleccionado.</p>
+                    </div>
+
+                    <!-- KPI Cards Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- Card 1: Ingresos -->
+                        <div class="bg-slate-900/90 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ingresos Totales</span>
+                                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-arrow-down-left"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-2xl md:text-3xl font-extrabold text-white" id="kpi-ingresos">$ 0</span>
+                                <span class="block text-xs text-emerald-400 mt-1 font-medium"><i class="fa-solid fa-circle-check mr-1"></i>Entradas del mes</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Gastos -->
+                        <div class="bg-slate-900/90 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Gastos Reales</span>
+                                <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-arrow-up-right"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-2xl md:text-3xl font-extrabold text-white" id="kpi-gastos">$ 0</span>
+                                <span class="block text-xs text-slate-400 mt-1" id="kpi-presupuestado-sub">Presupuestado: $ 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Provisiones -->
+                        <div class="bg-slate-900/90 border border-slate-800/80 p-5 rounded-2xl relative overflow-hidden group hover:border-slate-700 transition">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Provisiones del Mes</span>
+                                <div class="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-piggy-bank"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-2xl md:text-3xl font-extrabold text-white" id="kpi-provisiones">$ 0</span>
+                                <span class="block text-xs text-sky-400 mt-1 font-medium"><i class="fa-solid fa-shield mr-1"></i>Reserva sugerida</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Margen Disponible -->
+                        <div class="bg-slate-900/90 border border-blue-500/30 p-5 rounded-2xl relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950/40">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold text-blue-300 uppercase tracking-wider">Margen Disponible</span>
+                                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 font-bold">
+                                    <i class="fa-solid fa-coins"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <span class="text-2xl md:text-3xl font-extrabold text-blue-400" id="kpi-margen">$ 0</span>
+                                <span class="block text-xs text-slate-300 mt-1 font-medium">Resultado final del período</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-slate-900 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between shadow-xl">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <h3 class="text-base font-semibold text-white">Comparativa Presupuesto vs Real</h3>
+                                    <p class="text-xs text-slate-400">Rubros presupuestados en el período actual</p>
+                                </div>
+                                <span id="chart-period-badge" class="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-full border border-slate-700">Octubre 2026</span>
+                            </div>
+                            <div class="h-64">
+                                <canvas id="presupuestoVsRealChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between shadow-xl">
+                            <div class="mb-4">
+                                <h3 class="text-base font-semibold text-white">Distribución de Gastos</h3>
+                                <p class="text-xs text-slate-400">Gastos reales por categoría</p>
+                            </div>
+                            <div class="h-64 flex items-center justify-center">
+                                <canvas id="gastosDonutChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: PRESUPUESTO -->
+                <section id="tab-presupuesto" class="tab-content space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">Presupuesto Mensual</h2>
+                            <p class="text-sm text-slate-400">Ajusta tus metas de gasto estimadas para este período.</p>
+                        </div>
+                        <button onclick="openModal('presupuesto')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 shadow-md self-start sm:self-auto">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Agregar Categoría Presupuestada</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-800/80 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700/60">
+                                    <tr>
+                                        <th class="py-3.5 px-6">Categoría</th>
+                                        <th class="py-3.5 px-6">Presupuestado</th>
+                                        <th class="py-3.5 px-6">Real Ejecutado</th>
+                                        <th class="py-3.5 px-6">Diferencia</th>
+                                        <th class="py-3.5 px-6">Estado</th>
+                                        <th class="py-3.5 px-6 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="presupuesto-table-body" class="divide-y divide-slate-800/60"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 3: MOVIMIENTOS -->
+                <section id="tab-movimientos" class="tab-content space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">Registro de Movimientos</h2>
+                            <p class="text-sm text-slate-400">Detalle completo de ingresos y gastos de este mes.</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <input type="text" id="searchMovimientos" oninput="filterMovimientos()" placeholder="Buscar en el mes..." class="bg-slate-900 border border-slate-800 text-xs text-slate-200 rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                            <button onclick="openModal('movimiento')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3.5 py-2.5 rounded-xl transition flex items-center space-x-2 shrink-0">
+                                <i class="fa-solid fa-plus"></i>
+                                <span class="hidden sm:inline">Nuevo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-800/80 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700/60">
+                                    <tr>
+                                        <th class="py-3.5 px-6">Fecha</th>
+                                        <th class="py-3.5 px-6">Detalle / Descripción</th>
+                                        <th class="py-3.5 px-6">Categoría</th>
+                                        <th class="py-3.5 px-6">Medio de Pago</th>
+                                        <th class="py-3.5 px-6">Monto</th>
+                                        <th class="py-3.5 px-6 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="movimientos-table-body" class="divide-y divide-slate-800/60"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 4: GASTOS FUTUROS -->
+                <section id="tab-gastos-futuros" class="tab-content space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">Gastos Futuros y Provisiones</h2>
+                            <p class="text-sm text-slate-400">Prorratea tus compromisos futuros para reservar mes a mes.</p>
+                        </div>
+                        <button onclick="openModal('gastoFuturo')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 self-start sm:self-auto">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Agregar Provisión</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-sm text-slate-300">
+                                    <thead class="bg-slate-800/80 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700/60">
+                                        <tr>
+                                            <th class="py-3.5 px-6">Concepto</th>
+                                            <th class="py-3.5 px-6">Monto Total</th>
+                                            <th class="py-3.5 px-6">Meses Faltantes</th>
+                                            <th class="py-3.5 px-6">Ahorro Mensual</th>
+                                            <th class="py-3.5 px-6 text-right">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="gastos-futuros-body" class="divide-y divide-slate-800/60"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 border border-slate-800/80 p-6 rounded-2xl flex flex-col justify-between shadow-xl">
+                            <div>
+                                <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg mb-4">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                </div>
+                                <h3 class="text-base font-semibold text-white">¿Cómo funcionan las Provisiones?</h3>
+                                <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                    Si tienes un gasto grande de $120.000 dentro de 6 meses (ej. Patente o Seguro), reservas **$20.000 por mes**.
+                                </p>
+                                <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                                    Esta cuota sugerida se resta automáticamente de tu **Margen Disponible** en el Dashboard para proteger tu liquidez.
+                                </p>
+                            </div>
+                            <div class="mt-6 pt-4 border-t border-slate-800">
+                                <span class="text-xs text-blue-400 font-medium"><i class="fa-solid fa-circle-info mr-1"></i> Tip Financiero</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: TARJETAS Y CUOTAS -->
+                <section id="tab-tarjetas" class="tab-content space-y-6 hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-xl md:text-2xl font-bold text-white tracking-tight">Tarjetas y Cuotas Pendientes</h2>
+                            <p class="text-sm text-slate-400">Visualiza saldos financiados sin duplicar tus egresos corrientes.</p>
+                        </div>
+                        <button onclick="openModal('tarjeta')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition flex items-center space-x-2 self-start sm:self-auto">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Agregar Compra Financiada</span>
+                        </button>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-800/80 text-xs uppercase text-slate-400 font-semibold border-b border-slate-700/60">
+                                    <tr>
+                                        <th class="py-3.5 px-6">Fecha Compra</th>
+                                        <th class="py-3.5 px-6">Detalle / Producto</th>
+                                        <th class="py-3.5 px-6">Monto Total</th>
+                                        <th class="py-3.5 px-6">Cuotas</th>
+                                        <th class="py-3.5 px-6">Valor Cuota</th>
+                                        <th class="py-3.5 px-6">Pagadas / Restantes</th>
+                                        <th class="py-3.5 px-6">Saldo Pendiente</th>
+                                        <th class="py-3.5 px-6 text-right">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tarjetas-table-body" class="divide-y divide-slate-800/60"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Unified CRUD Modal -->
+    <div id="crudModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5 relative">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center" id="modalTitle">
+                    <i class="fa-solid fa-pen-to-square text-blue-500 mr-2"></i> Editar Registro
+                </h3>
+                <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="entityType">
+                <input type="hidden" id="entityId">
+                <div id="formFields" class="space-y-4">
+                    <!-- Fields generated dynamically -->
+                </div>
+                <div class="pt-3 flex justify-end space-x-3 border-t border-slate-800">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 transition">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 transition">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Period Modal -->
+    <div id="periodModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 shadow-2xl space-y-5 relative">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center">
+                    <i class="fa-solid fa-calendar-plus text-blue-500 mr-2"></i> Seleccionar / Agregar Mes
+                </h3>
+                <button type="button" onclick="closePeriodModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Año</label>
+                    <select id="newPeriodYear" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="2025">2025</option>
+                        <option value="2026" selected>2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Mes</label>
+                    <select id="newPeriodMonth" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10" selected>Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pt-3 flex justify-end space-x-3 border-t border-slate-800">
+                <button type="button" onclick="closePeriodModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800 transition">Cancelar</button>
+                <button type="button" onclick="addNewPeriod()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-md shadow-blue-600/20 transition">Ir al Período</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Core Application State indexed by month period
+        let activePeriod = '10-2026';
+
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        const defaultState = {
+            periods: [
+                { code: '10-2026', label: 'Octubre 2026' },
+                { code: '11-2026', label: 'Noviembre 2026' },
+                { code: '12-2026', label: 'Diciembre 2026' }
+            ],
+            movimientos: [
+                { id: 1, period: '10-2026', fecha: '2026-10-12', detalle: 'Supermercado Central', categoria: 'Alimentación', pago: 'Débito', monto: 42000, tipo: 'Gasto' },
+                { id: 2, period: '10-2026', fecha: '2026-10-10', detalle: 'Pago de Servicios (Luz/Gas)', categoria: 'Vivienda y Servicios', pago: 'Transferencia', monto: 28000, tipo: 'Gasto' },
+                { id: 3, period: '10-2026', fecha: '2026-10-05', detalle: 'Combustible', categoria: 'Transporte', pago: 'Tarjeta de Crédito', monto: 15000, tipo: 'Gasto' },
+                { id: 4, period: '10-2026', fecha: '2026-10-01', detalle: 'Cobro de Honorarios', categoria: 'Ingreso Trabajo', pago: 'Transferencia', monto: 480000, tipo: 'Ingreso' },
+                { id: 5, period: '11-2026', fecha: '2026-11-01', detalle: 'Sueldo Noviembre', categoria: 'Ingreso Trabajo', pago: 'Transferencia', monto: 500000, tipo: 'Ingreso' },
+                { id: 6, period: '11-2026', fecha: '2026-11-04', detalle: 'Alquiler Residencia', categoria: 'Vivienda y Servicios', pago: 'Transferencia', monto: 120000, tipo: 'Gasto' }
+            ],
+            presupuesto: [
+                { id: 1, period: '10-2026', categoria: 'Alimentación', presupuestado: 150000 },
+                { id: 2, period: '10-2026', categoria: 'Vivienda y Servicios', presupuestado: 90000 },
+                { id: 3, period: '10-2026', categoria: 'Transporte', presupuestado: 40000 },
+                { id: 4, period: '10-2026', categoria: 'Entretenimiento', presupuestado: 30000 },
+                { id: 5, period: '10-2026', categoria: 'Salud', presupuestado: 20000 },
+                { id: 6, period: '11-2026', categoria: 'Alimentación', presupuestado: 160000 },
+                { id: 7, period: '11-2026', categoria: 'Vivienda y Servicios', presupuestado: 130000 }
+            ],
+            gastosFuturos: [
+                { id: 1, concepto: 'Patente Anual Vehículo', total: 120000, meses: 6 },
+                { id: 2, concepto: 'Seguro Médico Trimestral', total: 60000, meses: 3 },
+                { id: 3, concepto: 'Regalos Navideños', total: 90000, meses: 2 }
+            ],
+            tarjetas: [
+                { id: 1, fecha: '2026-08-15', detalle: 'Smart TV 50"', total: 360000, cuotas: 12, pagadas: 4 },
+                { id: 2, fecha: '2026-09-02', detalle: 'Lavarropas Automático', total: 240000, cuotas: 6, pagadas: 2 }
+            ]
+        };
+
+        // Load saved state or default
+        let state = loadSavedState();
+
+        function loadSavedState() {
+            try {
+                const saved = localStorage.getItem('finanzasClaras_data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (!parsed.periods) parsed.periods = JSON.parse(JSON.stringify(defaultState.periods));
+                    return parsed;
+                }
+                return JSON.parse(JSON.stringify(defaultState));
+            } catch (e) {
+                return JSON.parse(JSON.stringify(defaultState));
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem('finanzasClaras_data', JSON.stringify(state));
+            } catch (e) {
+                console.error('Error guardando en localStorage:', e);
+            }
+        }
+
+        function renderPeriodDropdown() {
+            const selector = document.getElementById('monthSelector');
+            if (!selector) return;
+            selector.innerHTML = '';
+
+            const existingCodes = new Set((state.periods || []).map(p => p.code));
+            state.movimientos.forEach(m => { if (m.period) existingCodes.add(m.period); });
+            state.presupuesto.forEach(p => { if (p.period) existingCodes.add(p.period); });
+
+            const sortedCodes = Array.from(existingCodes).sort((a, b) => {
+                const [mA, yA] = a.split('-').map(Number);
+                const [mB, yB] = b.split('-').map(Number);
+                if (yA !== yB) return yA - yB;
+                return mA - mB;
+            });
+
+            sortedCodes.forEach(code => {
+                const parts = code.split('-');
+                let label = code;
+                if (parts.length === 2) {
+                    const mIdx = parseInt(parts[0], 10) - 1;
+                    if (mIdx >= 0 && mIdx < 12) {
+                        label = `${monthNames[mIdx]} ${parts[1]}`;
+                    }
+                }
+                const opt = document.createElement('option');
+                opt.value = code;
+                opt.innerText = label;
+                if (code === activePeriod) opt.selected = true;
+                selector.appendChild(opt);
+            });
+        }
+
+        function openAddPeriodModal() {
+            document.getElementById('periodModal').classList.remove('hidden');
+        }
+
+        function closePeriodModal() {
+            document.getElementById('periodModal').classList.add('hidden');
+        }
+
+        function addNewPeriod() {
+            const m = document.getElementById('newPeriodMonth').value;
+            const y = document.getElementById('newPeriodYear').value;
+            const code = `${m}-${y}`;
+            const mName = monthNames[parseInt(m, 10) - 1];
+            const label = `${mName} ${y}`;
+
+            if (!state.periods) state.periods = [];
+            if (!state.periods.some(p => p.code === code)) {
+                state.periods.push({ code, label });
+                saveState();
+            }
+
+            activePeriod = code;
+            renderPeriodDropdown();
+            changePeriod();
+            closePeriodModal();
+        }
+
+        function resetDataToDefault() {
+            if (confirm('¿Estás seguro de reiniciar todos tus datos a los valores predeterminados?')) {
+                state = JSON.parse(JSON.stringify(defaultState));
+                saveState();
+                renderPeriodDropdown();
+                updateDashboard();
+                renderPresupuestoTable();
+                renderMovimientosTable();
+                renderGastosFuturos();
+                renderTarjetas();
+            }
+        }
+
+        let barChartInstance = null;
+        let donutChartInstance = null;
+
+        function formatCurrency(val) {
+            return '$ ' + Number(val || 0).toLocaleString('es-AR');
+        }
+
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return dateStr;
+        }
+
+        function changePeriod() {
+            const selector = document.getElementById('monthSelector');
+            if (selector && selector.value) {
+                activePeriod = selector.value;
+            }
+            const periodLabel = selector && selector.options.length ? selector.options[selector.selectedIndex].text : activePeriod;
+            
+            const badge = document.getElementById('chart-period-badge');
+            if (badge) badge.innerText = periodLabel;
+
+            updateDashboard();
+            renderPresupuestoTable();
+            renderMovimientosTable();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/20');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-600/20');
+                activeBtn.classList.remove('text-slate-400');
+            }
+
+            document.querySelectorAll('.m-nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+            const mobileActiveBtn = document.getElementById(`m-nav-${tabId}`);
+            if (mobileActiveBtn) {
+                mobileActiveBtn.classList.remove('bg-slate-800', 'text-slate-300');
+                mobileActiveBtn.classList.add('bg-blue-600', 'text-white');
+            }
+        }
+
+        function getPeriodMovimientos() {
+            return state.movimientos.filter(m => m.period === activePeriod);
+        }
+
+        function getPeriodPresupuesto() {
+            return state.presupuesto.filter(p => p.period === activePeriod);
+        }
+
+        function calculateCategoryRealExpense(catName) {
+            return getPeriodMovimientos()
+                .filter(m => m.tipo === 'Gasto' && m.categoria === catName)
+                .reduce((acc, m) => acc + Number(m.monto), 0);
+        }
+
+        function updateDashboard() {
+            const periodMovs = getPeriodMovimientos();
+            
+            const totalIngresos = periodMovs.filter(m => m.tipo === 'Ingreso').reduce((sum, m) => sum + Number(m.monto), 0);
+            const totalGastos = periodMovs.filter(m => m.tipo === 'Gasto').reduce((sum, m) => sum + Number(m.monto), 0);
+            
+            const totalProvisiones = state.gastosFuturos.reduce((sum, g) => sum + Math.round(Number(g.total) / Math.max(1, Number(g.meses))), 0);
+            const totalPresupuestado = getPeriodPresupuesto().reduce((sum, p) => sum + Number(p.presupuestado), 0);
+
+            const margenDisponible = totalIngresos - totalGastos - totalProvisiones;
+
+            document.getElementById('kpi-ingresos').innerText = formatCurrency(totalIngresos);
+            document.getElementById('kpi-gastos').innerText = formatCurrency(totalGastos);
+            document.getElementById('kpi-provisiones').innerText = formatCurrency(totalProvisiones);
+            document.getElementById('kpi-margen').innerText = formatCurrency(margenDisponible);
+            document.getElementById('kpi-presupuestado-sub').innerText = `Presupuestado: ${formatCurrency(totalPresupuestado)}`;
+
+            updateCharts();
+        }
+
+        function renderPresupuestoTable() {
+            const tbody = document.getElementById('presupuesto-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const list = getPeriodPresupuesto();
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 text-xs">No hay categorías presupuestadas para este período.</td></tr>`;
+                return;
+            }
+
+            list.forEach(item => {
+                const realVal = calculateCategoryRealExpense(item.categoria);
+                const diff = item.presupuestado - realVal;
+                const isOk = diff >= 0;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 font-medium text-white">${item.categoria}</td>
+                    <td class="py-4 px-6 text-slate-300">${formatCurrency(item.presupuestado)}</td>
+                    <td class="py-4 px-6 text-slate-300">${formatCurrency(realVal)}</td>
+                    <td class="py-4 px-6 font-semibold ${isOk ? 'text-emerald-400' : 'text-rose-400'}">
+                        ${isOk ? '+' : ''}${formatCurrency(diff)}
+                    </td>
+                    <td class="py-4 px-6">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${isOk ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                            ${isOk ? 'OK' : 'Excedido'}
+                        </span>
+                    </td>
+                    <td class="py-4 px-6 text-right space-x-2">
+                        <button onclick="openModal('presupuesto', ${item.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteItem('presupuesto', ${item.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderMovimientosTable(items = getPeriodMovimientos()) {
+            const tbody = document.getElementById('movimientos-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500 text-xs">No existen movimientos registrados para este mes.</td></tr>`;
+                return;
+            }
+
+            items.forEach(mov => {
+                const isGasto = mov.tipo === 'Gasto';
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-slate-400 text-xs">${formatDateDisplay(mov.fecha)}</td>
+                    <td class="py-4 px-6 font-medium text-white">${mov.detalle}</td>
+                    <td class="py-4 px-6"><span class="bg-slate-800/80 text-slate-300 text-xs px-2.5 py-1 rounded-lg border border-slate-700/60">${mov.categoria}</span></td>
+                    <td class="py-4 px-6 text-slate-400 text-xs">${mov.pago}</td>
+                    <td class="py-4 px-6 font-bold ${isGasto ? 'text-rose-400' : 'text-emerald-400'}">
+                        ${isGasto ? '-' : '+'}${formatCurrency(mov.monto)}
+                    </td>
+                    <td class="py-4 px-6 text-right space-x-2">
+                        <button onclick="openModal('movimiento', ${mov.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteItem('movimiento', ${mov.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterMovimientos() {
+            const queryInput = document.getElementById('searchMovimientos');
+            const query = queryInput ? queryInput.value.toLowerCase() : '';
+            const filtered = getPeriodMovimientos().filter(m => 
+                m.detalle.toLowerCase().includes(query) || 
+                m.categoria.toLowerCase().includes(query)
+            );
+            renderMovimientosTable(filtered);
+        }
+
+        function renderGastosFuturos() {
+            const tbody = document.getElementById('gastos-futuros-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            state.gastosFuturos.forEach(row => {
+                const sugerido = Math.round(row.total / Math.max(1, row.meses));
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 font-medium text-white">${row.concepto}</td>
+                    <td class="py-4 px-6 text-slate-300">${formatCurrency(row.total)}</td>
+                    <td class="py-4 px-6 text-slate-400">${row.meses} meses</td>
+                    <td class="py-4 px-6 font-bold text-blue-400">${formatCurrency(sugerido)}/mes</td>
+                    <td class="py-4 px-6 text-right space-x-2">
+                        <button onclick="openModal('gastoFuturo', ${row.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteItem('gastoFuturo', ${row.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderTarjetas() {
+            const tbody = document.getElementById('tarjetas-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            state.tarjetas.forEach(row => {
+                const valorCuota = Math.round(row.total / Math.max(1, row.cuotas));
+                const restantes = Math.max(0, row.cuotas - row.pagadas);
+                const saldoPendiente = valorCuota * restantes;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition';
+                tr.innerHTML = `
+                    <td class="py-4 px-6 text-slate-400 text-xs">${formatDateDisplay(row.fecha)}</td>
+                    <td class="py-4 px-6 font-medium text-white">${row.detalle}</td>
+                    <td class="py-4 px-6 text-slate-300">${formatCurrency(row.total)}</td>
+                    <td class="py-4 px-6 text-slate-400">${row.cuotas} cuotas</td>
+                    <td class="py-4 px-6 text-slate-300">${formatCurrency(valorCuota)}</td>
+                    <td class="py-4 px-6 text-slate-300">${row.pagadas} / <span class="text-blue-400 font-semibold">${restantes}</span></td>
+                    <td class="py-4 px-6 font-bold text-rose-400">${formatCurrency(saldoPendiente)}</td>
+                    <td class="py-4 px-6 text-right space-x-2">
+                        <button onclick="openModal('tarjeta', ${row.id})" class="text-slate-400 hover:text-blue-400 transition p-1.5"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteItem('tarjeta', ${row.id})" class="text-slate-400 hover:text-rose-400 transition p-1.5"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateCharts() {
+            const presData = getPeriodPresupuesto();
+            const categories = presData.map(p => p.categoria);
+            const presupuestadoValues = presData.map(p => p.presupuestado);
+            const realValues = categories.map(cat => calculateCategoryRealExpense(cat));
+
+            if (barChartInstance) barChartInstance.destroy();
+            if (donutChartInstance) donutChartInstance.destroy();
+
+            const ctxBar = document.getElementById('presupuestoVsRealChart');
+            if (ctxBar) {
+                barChartInstance = new Chart(ctxBar.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: categories.length ? categories : ['Sin categorías'],
+                        datasets: [
+                            {
+                                label: 'Presupuestado',
+                                data: presupuestadoValues.length ? presupuestadoValues : [0],
+                                backgroundColor: '#2563eb',
+                                borderRadius: 6
+                            },
+                            {
+                                label: 'Real Ejecutado',
+                                data: realValues.length ? realValues : [0],
+                                backgroundColor: '#38bdf8',
+                                borderRadius: 6
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 12 } } }
+                        },
+                        scales: {
+                            x: { ticks: { color: '#64748b' }, grid: { display: false } },
+                            y: { ticks: { color: '#64748b' }, grid: { color: '#1e293b' } }
+                        }
+                    }
+                });
+            }
+
+            const ctxDonut = document.getElementById('gastosDonutChart');
+            if (ctxDonut) {
+                donutChartInstance = new Chart(ctxDonut.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: categories.length ? categories : ['Sin Gastos'],
+                        datasets: [{
+                            data: realValues.length ? realValues : [1],
+                            backgroundColor: ['#2563eb', '#38bdf8', '#0ea5e9', '#0284c7', '#64748b', '#f43f5e'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+        }
+
+        function openModal(type, id = null) {
+            document.getElementById('entityType').value = type;
+            document.getElementById('entityId').value = id || '';
+
+            const titleEl = document.getElementById('modalTitle');
+            const fieldsContainer = document.getElementById('formFields');
+            fieldsContainer.innerHTML = '';
+
+            let item = null;
+
+            if (type === 'movimiento') {
+                if (id) item = state.movimientos.find(m => m.id === id);
+                titleEl.innerHTML = `<i class="fa-solid fa-receipt text-blue-500 mr-2"></i> ${id ? 'Editar Movimiento' : 'Nuevo Movimiento'}`;
+
+                fieldsContainer.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Tipo de Registro</label>
+                        <select id="field_tipo" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Gasto" ${item && item.tipo === 'Gasto' ? 'selected' : ''}>Gasto</option>
+                            <option value="Ingreso" ${item && item.tipo === 'Ingreso' ? 'selected' : ''}>Ingreso</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Fecha</label>
+                        <input type="date" id="field_fecha" required value="${item ? item.fecha : new Date().toISOString().split('T')[0]}" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Descripción / Detalle</label>
+                        <input type="text" id="field_detalle" required value="${item ? item.detalle : ''}" placeholder="Ej. Supermercado, Sueldo" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Categoría</label>
+                        <select id="field_categoria" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="Alimentación" ${item && item.categoria === 'Alimentación' ? 'selected' : ''}>Alimentación</option>
+                            <option value="Vivienda y Servicios" ${item && item.categoria === 'Vivienda y Servicios' ? 'selected' : ''}>Vivienda y Servicios</option>
+                            <option value="Transporte" ${item && item.categoria === 'Transporte' ? 'selected' : ''}>Transporte</option>
+                            <option value="Entretenimiento" ${item && item.categoria === 'Entretenimiento' ? 'selected' : ''}>Entretenimiento</option>
+                            <option value="Salud" ${item && item.categoria === 'Salud' ? 'selected' : ''}>Salud</option>
+                            <option value="Ingreso Trabajo" ${item && item.categoria === 'Ingreso Trabajo' ? 'selected' : ''}>Ingreso Trabajo</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Monto ($)</label>
+                            <input type="number" id="field_monto" min="1" step="any" required value="${item ? item.monto : ''}" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Medio de Pago</label>
+                            <select id="field_pago" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="Efectivo" ${item && item.pago === 'Efectivo' ? 'selected' : ''}>Efectivo</option>
+                                <option value="Débito" ${item && item.pago === 'Débito' ? 'selected' : ''}>Débito</option>
+                                <option value="Transferencia" ${item && item.pago === 'Transferencia' ? 'selected' : ''}>Transferencia</option>
+                                <option value="Tarjeta de Crédito" ${item && item.pago === 'Tarjeta de Crédito' ? 'selected' : ''}>Tarjeta de Crédito</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'presupuesto') {
+                if (id) item = state.presupuesto.find(p => p.id === id);
+                titleEl.innerHTML = `<i class="fa-solid fa-calculator text-blue-500 mr-2"></i> ${id ? 'Editar Presupuesto' : 'Nuevo Presupuesto'}`;
+
+                fieldsContainer.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Categoría</label>
+                        <input type="text" id="field_categoria" required value="${item ? item.categoria : ''}" placeholder="Ej. Alimentación, Indumentaria" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Monto Presupuestado ($)</label>
+                        <input type="number" id="field_presupuestado" min="1" step="any" required value="${item ? item.presupuestado : ''}" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                `;
+            } else if (type === 'gastoFuturo') {
+                if (id) item = state.gastosFuturos.find(g => g.id === id);
+                titleEl.innerHTML = `<i class="fa-solid fa-calendar-check text-blue-500 mr-2"></i> ${id ? 'Editar Provisión' : 'Nueva Provisión'}`;
+
+                fieldsContainer.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Concepto / Gasto Futuro</label>
+                        <input type="text" id="field_concepto" required value="${item ? item.concepto : ''}" placeholder="Ej. Patente Anual, Seguro" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Monto Total Estimado ($)</label>
+                            <input type="number" id="field_total" min="1" step="any" required value="${item ? item.total : ''}" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Meses Faltantes</label>
+                            <input type="number" id="field_meses" min="1" required value="${item ? item.meses : ''}" placeholder="Ej. 6" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'tarjeta') {
+                if (id) item = state.tarjetas.find(t => t.id === id);
+                titleEl.innerHTML = `<i class="fa-solid fa-credit-card text-blue-500 mr-2"></i> ${id ? 'Editar Compra Financiada' : 'Nueva Compra Financiada'}`;
+
+                fieldsContainer.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Fecha de Compra</label>
+                        <input type="date" id="field_fecha" required value="${item ? item.fecha : new Date().toISOString().split('T')[0]}" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Detalle / Producto</label>
+                        <input type="text" id="field_detalle" required value="${item ? item.detalle : ''}" placeholder="Ej. Smart TV, Heladera" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Total ($)</label>
+                            <input type="number" id="field_total" min="1" step="any" required value="${item ? item.total : ''}" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Cuotas Total</label>
+                            <input type="number" id="field_cuotas" min="1" required value="${item ? item.cuotas : ''}" placeholder="12" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Cuotas Pagadas</label>
+                            <input type="number" id="field_pagadas" min="0" required value="${item ? item.pagadas : 0}" placeholder="0" class="w-full bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('crudModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('crudModal').classList.add('hidden');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('entityType').value;
+            const idVal = document.getElementById('entityId').value;
+            const id = idVal ? Number(idVal) : null;
+
+            if (type === 'movimiento') {
+                const data = {
+                    id: id || Date.now(),
+                    period: activePeriod,
+                    tipo: document.getElementById('field_tipo').value,
+                    fecha: document.getElementById('field_fecha').value,
+                    detalle: document.getElementById('field_detalle').value,
+                    categoria: document.getElementById('field_categoria').value,
+                    monto: parseFloat(document.getElementById('field_monto').value),
+                    pago: document.getElementById('field_pago').value
+                };
+
+                if (id) {
+                    const idx = state.movimientos.findIndex(m => m.id === id);
+                    if (idx !== -1) state.movimientos[idx] = data;
+                } else {
+                    state.movimientos.unshift(data);
+                }
+                renderMovimientosTable();
+            } else if (type === 'presupuesto') {
+                const data = {
+                    id: id || Date.now(),
+                    period: activePeriod,
+                    categoria: document.getElementById('field_categoria').value,
+                    presupuestado: parseFloat(document.getElementById('field_presupuestado').value)
+                };
+
+                if (id) {
+                    const idx = state.presupuesto.findIndex(p => p.id === id);
+                    if (idx !== -1) state.presupuesto[idx] = data;
+                } else {
+                    state.presupuesto.push(data);
+                }
+                renderPresupuestoTable();
+            } else if (type === 'gastoFuturo') {
+                const data = {
+                    id: id || Date.now(),
+                    concepto: document.getElementById('field_concepto').value,
+                    total: parseFloat(document.getElementById('field_total').value),
+                    meses: parseInt(document.getElementById('field_meses').value)
+                };
+
+                if (id) {
+                    const idx = state.gastosFuturos.findIndex(g => g.id === id);
+                    if (idx !== -1) state.gastosFuturos[idx] = data;
+                } else {
+                    state.gastosFuturos.push(data);
+                }
+                renderGastosFuturos();
+            } else if (type === 'tarjeta') {
+                const data = {
+                    id: id || Date.now(),
+                    fecha: document.getElementById('field_fecha').value,
+                    detalle: document.getElementById('field_detalle').value,
+                    total: parseFloat(document.getElementById('field_total').value),
+                    cuotas: parseInt(document.getElementById('field_cuotas').value),
+                    pagadas: parseInt(document.getElementById('field_pagadas').value)
+                };
+
+                if (id) {
+                    const idx = state.tarjetas.findIndex(t => t.id === id);
+                    if (idx !== -1) state.tarjetas[idx] = data;
+                } else {
+                    state.tarjetas.push(data);
+                }
+                renderTarjetas();
+            }
+
+            saveState();
+            updateDashboard();
+            closeModal();
+        }
+
+        function deleteItem(type, id) {
+            if (type === 'movimiento') {
+                state.movimientos = state.movimientos.filter(m => m.id !== id);
+                renderMovimientosTable();
+                filterMovimientos();
+            } else if (type === 'presupuesto') {
+                state.presupuesto = state.presupuesto.filter(p => p.id !== id);
+                renderPresupuestoTable();
+            } else if (type === 'gastoFuturo') {
+                state.gastosFuturos = state.gastosFuturos.filter(g => g.id !== id);
+                renderGastosFuturos();
+            } else if (type === 'tarjeta') {
+                state.tarjetas = state.tarjetas.filter(t => t.id !== id);
+                renderTarjetas();
+            }
+            saveState();
+            updateDashboard();
+            renderPresupuestoTable();
+        }
+
+        // Initialize application on window load
+        window.onload = function() {
+            renderPeriodDropdown();
+            updateDashboard();
+            renderPresupuestoTable();
+            renderMovimientosTable();
+            renderGastosFuturos();
+            renderTarjetas();
+        };
+    </script>
+</body>
+</html>
